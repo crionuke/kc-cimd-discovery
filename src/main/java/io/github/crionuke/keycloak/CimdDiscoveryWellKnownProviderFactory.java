@@ -12,16 +12,16 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
     public static final String PROVIDER_ID = "openid-configuration";
 
     @Override
-    public WellKnownProvider create(KeycloakSession session) {
+    public WellKnownProvider create(final KeycloakSession session) {
         return new CimdDiscoveryWellKnownProvider(new OIDCWellKnownProvider(session));
     }
 
     @Override
-    public void init(Config.Scope config) {
+    public void init(final Config.Scope config) {
     }
 
     @Override
-    public void postInit(KeycloakSessionFactory factory) {
+    public void postInit(final KeycloakSessionFactory factory) {
     }
 
     @Override
