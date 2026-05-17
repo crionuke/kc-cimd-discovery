@@ -9,13 +9,12 @@ import org.keycloak.wellknown.WellKnownProviderFactory;
 
 public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderFactory {
 
-    public static final String PROVIDER_ID = "openid-configuration";
-
-    private volatile WellKnownProviderFactory delegate;
+    public static final String PROVIDER_ID = "cimd-openid-configuration";
 
     @Override
     public WellKnownProvider create(final KeycloakSession session) {
-        return new CimdDiscoveryWellKnownProvider(delegate.create(session));
+        final var delegate = session.getProvider(WellKnownProvider.class, OIDCWellKnownProviderFactory.PROVIDER_ID);
+        return new CimdDiscoveryWellKnownProvider(delegate);
     }
 
     @Override
@@ -24,11 +23,6 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
 
     @Override
     public void postInit(final KeycloakSessionFactory factory) {
-        delegate = factory.getProviderFactoriesStream(WellKnownProvider.class)
-                .filter(f -> f.getClass() == OIDCWellKnownProviderFactory.class)
-                .map(f -> (WellKnownProviderFactory) f)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("OIDCWellKnownProviderFactory not found"));
     }
 
     @Override
@@ -40,9 +34,10 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
         return PROVIDER_ID;
     }
 
-    // Must be higher than OIDCWellKnownProviderFactory.order() == 0
+    // Override the URL alias so this factory serves "/.well-known/openid-configuration".
+    // Lowest getPriority() wins for a given alias; our default (1) beats Keycloak's (100).
     @Override
-    public int order() {
-        return 1;
+    public String getAlias() {
+        return OIDCWellKnownProviderFactory.PROVIDER_ID;
     }
 }

@@ -9,13 +9,12 @@ import org.keycloak.wellknown.WellKnownProviderFactory;
 
 public class CimdDiscoveryOAuth2WellKnownProviderFactory implements WellKnownProviderFactory {
 
-    public static final String PROVIDER_ID = "oauth-authorization-server";
-
-    private volatile WellKnownProviderFactory delegate;
+    public static final String PROVIDER_ID = "cimd-oauth-authorization-server";
 
     @Override
     public WellKnownProvider create(final KeycloakSession session) {
-        return new CimdDiscoveryWellKnownProvider(delegate.create(session));
+        final var delegate = session.getProvider(WellKnownProvider.class, OAuth2WellKnownProviderFactory.PROVIDER_ID);
+        return new CimdDiscoveryWellKnownProvider(delegate);
     }
 
     @Override
@@ -24,11 +23,6 @@ public class CimdDiscoveryOAuth2WellKnownProviderFactory implements WellKnownPro
 
     @Override
     public void postInit(final KeycloakSessionFactory factory) {
-        delegate = factory.getProviderFactoriesStream(WellKnownProvider.class)
-                .filter(f -> f.getClass() == OAuth2WellKnownProviderFactory.class)
-                .map(f -> (WellKnownProviderFactory) f)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("OAuth2WellKnownProviderFactory not found"));
     }
 
     @Override
@@ -40,9 +34,15 @@ public class CimdDiscoveryOAuth2WellKnownProviderFactory implements WellKnownPro
         return PROVIDER_ID;
     }
 
-    // Must be higher than OAuth2WellKnownProviderFactory.order() == 0
+    // Override the URL alias so this factory serves "/.well-known/oauth-authorization-server".
+    // Lowest getPriority() wins for a given alias; our default (1) beats Keycloak's (100).
     @Override
-    public int order() {
-        return 1;
+    public String getAlias() {
+        return OAuth2WellKnownProviderFactory.PROVIDER_ID;
+    }
+
+    @Override
+    public boolean isAvailableViaServerMetadata() {
+        return true;
     }
 }
