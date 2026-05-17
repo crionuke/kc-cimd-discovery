@@ -3,7 +3,7 @@ package sh.byv.keycloak;
 import org.keycloak.Config;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
-import org.keycloak.protocol.oidc.OIDCWellKnownProvider;
+import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
 import org.keycloak.wellknown.WellKnownProvider;
 import org.keycloak.wellknown.WellKnownProviderFactory;
 
@@ -11,9 +11,11 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
 
     public static final String PROVIDER_ID = "openid-configuration";
 
+    private WellKnownProviderFactory delegate;
+
     @Override
     public WellKnownProvider create(final KeycloakSession session) {
-        return new CimdDiscoveryWellKnownProvider(new OIDCWellKnownProvider(session));
+        return new CimdDiscoveryWellKnownProvider(delegate.create(session));
     }
 
     @Override
@@ -22,6 +24,11 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
 
     @Override
     public void postInit(final KeycloakSessionFactory factory) {
+        delegate = factory.getProviderFactoriesStream(WellKnownProvider.class)
+                .filter(f -> f instanceof OIDCWellKnownProviderFactory)
+                .map(f -> (WellKnownProviderFactory) f)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("OIDCWellKnownProviderFactory not found"));
     }
 
     @Override
