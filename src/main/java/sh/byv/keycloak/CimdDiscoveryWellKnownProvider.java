@@ -1,4 +1,4 @@
-package io.github.crionuke.keycloak;
+package sh.byv.keycloak;
 
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.wellknown.WellKnownProvider;

@@ -1,1 +1,1 @@
-io.github.crionuke.keycloak.CimdDiscoveryWellKnownProviderFactory
+sh.byv.keycloak.CimdDiscoveryWellKnownProviderFactory
