@@ -3,30 +3,28 @@ package io.github.crionuke.keycloak;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.wellknown.WellKnownProvider;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CimdDiscoveryWellKnownProvider implements WellKnownProvider {
 
     private final WellKnownProvider delegate;
 
-    public CimdDiscoveryWellKnownProvider(WellKnownProvider delegate) {
+    public CimdDiscoveryWellKnownProvider(final WellKnownProvider delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public Object getConfig() {
-        Object config = delegate.getConfig();
+        final var config = delegate.getConfig();
         if (config instanceof OIDCConfigurationRepresentation oidcConfig) {
-            List<String> methods = oidcConfig.getTokenEndpointAuthMethodsSupported();
-            if (methods == null) {
-                methods = new ArrayList<>();
-            } else {
-                methods = new ArrayList<>(methods);
-            }
-            if (!methods.contains("none")) {
-                methods.add("none");
-            }
+            final var existing = Optional.ofNullable(oidcConfig.getTokenEndpointAuthMethodsSupported())
+                    .orElseGet(List::of);
+            final var methods = Stream.concat(existing.stream(), Stream.of("none"))
+                    .distinct()
+                    .collect(Collectors.toList());
             oidcConfig.setTokenEndpointAuthMethodsSupported(methods);
         }
         return config;
