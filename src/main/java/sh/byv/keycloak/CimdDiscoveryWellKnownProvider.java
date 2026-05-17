@@ -3,12 +3,12 @@ package sh.byv.keycloak;
 import org.keycloak.protocol.oidc.representations.OIDCConfigurationRepresentation;
 import org.keycloak.wellknown.WellKnownProvider;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CimdDiscoveryWellKnownProvider implements WellKnownProvider {
+
+    private static final String NONE_AUTH_METHOD = "none";
 
     private final WellKnownProvider delegate;
 
@@ -20,12 +20,12 @@ public class CimdDiscoveryWellKnownProvider implements WellKnownProvider {
     public Object getConfig() {
         final var config = delegate.getConfig();
         if (config instanceof OIDCConfigurationRepresentation oidcConfig) {
-            final var existing = Optional.ofNullable(oidcConfig.getTokenEndpointAuthMethodsSupported())
-                    .orElseGet(List::of);
-            final var methods = Stream.concat(existing.stream(), Stream.of("none"))
-                    .distinct()
-                    .collect(Collectors.toList());
-            oidcConfig.setTokenEndpointAuthMethodsSupported(methods);
+            final List<String> existing = oidcConfig.getTokenEndpointAuthMethodsSupported();
+            if (existing == null || !existing.contains(NONE_AUTH_METHOD)) {
+                final var methods = existing == null ? new ArrayList<String>() : new ArrayList<>(existing);
+                methods.add(NONE_AUTH_METHOD);
+                oidcConfig.setTokenEndpointAuthMethodsSupported(methods);
+            }
         }
         return config;
     }
