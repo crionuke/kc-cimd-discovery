@@ -3,13 +3,13 @@ package sh.byv.keycloak;
 import org.keycloak.Config;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
-import org.keycloak.protocol.oidc.OIDCWellKnownProviderFactory;
+import org.keycloak.protocol.oauth2.OAuth2WellKnownProviderFactory;
 import org.keycloak.wellknown.WellKnownProvider;
 import org.keycloak.wellknown.WellKnownProviderFactory;
 
-public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderFactory {
+public class CimdDiscoveryOAuth2WellKnownProviderFactory implements WellKnownProviderFactory {
 
-    public static final String PROVIDER_ID = "openid-configuration";
+    public static final String PROVIDER_ID = "oauth-authorization-server";
 
     private volatile WellKnownProviderFactory delegate;
 
@@ -25,10 +25,10 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
     @Override
     public void postInit(final KeycloakSessionFactory factory) {
         delegate = factory.getProviderFactoriesStream(WellKnownProvider.class)
-                .filter(f -> f.getClass() == OIDCWellKnownProviderFactory.class)
+                .filter(f -> f.getClass() == OAuth2WellKnownProviderFactory.class)
                 .map(f -> (WellKnownProviderFactory) f)
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("OIDCWellKnownProviderFactory not found"));
+                .orElseThrow(() -> new IllegalStateException("OAuth2WellKnownProviderFactory not found"));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class CimdDiscoveryWellKnownProviderFactory implements WellKnownProviderF
         return PROVIDER_ID;
     }
 
-    // Must be higher than OIDCWellKnownProviderFactory.order() == 0
+    // Must be higher than OAuth2WellKnownProviderFactory.order() == 0
     @Override
     public int order() {
         return 1;
